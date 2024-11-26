@@ -24,12 +24,11 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/list", (String path = "") =>
 {
-    var actualPath = Path.Combine(Configurations.BaseDirectory, path);
-    var paths = PathUtility.SplitPathAfterArchiveFile(actualPath);
+    var paths = PathUtility.SplitPathAfterArchiveFile(path);
  
     if (paths.Length == 1)
     {
-        return PhysicalFS.List(actualPath);
+        return PhysicalFS.List(path);
     }
 
     if (paths.Length == 2)
@@ -64,5 +63,5 @@ app.MapGet("/get", (String path) =>
 
 app.Run();
 
-public record ListResult(String Path, String[] Directories, String[] Files) { }
+public record ListResult(String Path, String[] Directories, String[] Archives, String[] Files) { }
 

@@ -23,6 +23,15 @@
         }
 
         [Fact]
+        public void TestOneArchiveRoot()
+        {
+            var parts = PathUtility.SplitPathAfterArchiveFile("root/abc.zip");
+
+            Assert.Equal(["root/abc.zip", ""], parts);
+
+        }
+
+        [Fact]
         public void TestTwoArchive()
         {
             var parts = PathUtility.SplitPathAfterArchiveFile("root/abc.zip/somedir/another.zip/somedir2/somedir3/file.jpg");

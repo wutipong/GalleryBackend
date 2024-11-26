@@ -10,31 +10,38 @@ namespace GalleryBackend
         {
             var directories = new LinkedList<string>();
             var files = new LinkedList<string>();
+            var archives = new LinkedList<string>();
 
-            foreach (var d in Directory.GetDirectories(path))
+            var actualPath = new PosixPath(Configurations.BaseDirectory, path);
+
+            foreach (var d in Directory.GetDirectories(actualPath.ToString()))
             {
                 var p = new PosixPath(d);
                 directories.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
             }
 
-            foreach (var f in Directory.GetFiles(path))
+            foreach (var f in Directory.GetFiles(actualPath.ToString()))
             {
                 var p = new PosixPath(f);
                 if (PathUtility.HasArchiveFileExt(f))
                 {
-                    directories.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
+                    archives.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
                 }
 
                 else
                 {
-                    files.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
+                    if (MimeTypes.GetMimeType(p.Filename).StartsWith("image/"))
+                    {
+                        files.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
+                    }
                 }
             }
 
             var output = new ListResult(
-                path,
-                [.. directories.OrderBy(s => s, (IComparer<string>)StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
-                [.. files.OrderBy(s => s, (IComparer<string>)StringComparison.OrdinalIgnoreCase.WithNaturalSort())]
+                Path: path,
+                Directories: [.. directories.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
+                Archives: [.. archives.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
+                Files: [.. files.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())]
             );
 
             return output;

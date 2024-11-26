@@ -18,7 +18,7 @@ namespace GalleryBackend
 
             if (paths.Length == 2)
             {
-                return null;
+                return ArchiveFS.ReadFile(paths[0], paths[1]);
             }
 
             throw new InvalidPathException(path, "Nested archive is not supported");
@@ -26,8 +26,13 @@ namespace GalleryBackend
         public static IResult CreateThumbnail(string path)
         {
             using var stream = GetStream(path);
+
             using var image = Image.NewFromStream(stream);
-            using var thumb = image.ThumbnailImage(width: Configurations.ThumbnailWidth, height: Configurations.ThumbnailHeight, crop: Enums.Interesting.Entropy);
+            using var thumb = image.ThumbnailImage(
+                width: Configurations.ThumbnailWidth, 
+                height: Configurations.ThumbnailHeight, 
+                crop: Enums.Interesting.Entropy
+            );
 
             var output = thumb.JpegsaveBuffer();
 
@@ -52,7 +57,11 @@ namespace GalleryBackend
                 return Results.Stream(stream, contentType: MimeTypes.GetMimeType(filename), fileDownloadName: filename);
             }
 
-            using var thumb = image.ThumbnailImage(width: Configurations.ViewImageWidth, height: Configurations.ViewImageHeight, crop: Enums.Interesting.None);
+            using var thumb = image.ThumbnailImage(
+                width: Configurations.ViewImageWidth, 
+                height: Configurations.ViewImageHeight, 
+                crop: Enums.Interesting.None);
+
             var output = thumb.WebpsaveBuffer();
 
             return Results.Bytes(output, "image/webp", fileDownloadName: $"{filename}.webp");
