@@ -57,6 +57,6 @@ jobs:
           push: ${{ !env.ACT }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          file: {context}/GalleryFrontend/Dockerfile
+          file: GalleryFrontend/Dockerfile
           build-args: |
             VERSION=${{ steps.condval.outputs.value }}
