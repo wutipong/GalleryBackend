@@ -14,6 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NaturalSort.Extension" Version="4.3.0" />
     <PackageReference Include="NetVips" Version="3.0.0" />
     <PackageReference Include="NetVips.Extensions" Version="3.0.0" />
     <PackageReference Include="NetVips.Native" Version="8.16.0" />

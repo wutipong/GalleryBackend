@@ -1,4 +1,6 @@
 using GalleryBackend;
+using NaturalSort.Extension;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,44 +16,35 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.MapGet("/list", (String path="") =>
+app.MapGet("/list", (String path = "") =>
 {
     var actualPath = Path.Combine(Configurations.BaseDirectory, path);
     var directories = Directory.GetDirectories(actualPath);
     var files = Directory.GetFiles(actualPath);
 
-    var output = new ListResult(directories, files);
+    for (int i = 0; i < files.Length; i++)
+    {
+        files[i] = files[i][(Configurations.BaseDirectory.Length+1)..];
+    }
+
+    for (int i = 0; i < directories.Length; i++)
+    {
+        directories[i] = directories[i][(Configurations.BaseDirectory.Length +1)..] +"/";
+    }
+
+    var output = new ListResult(
+        path,
+        [.. directories.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
+        [.. files.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())]
+    );
 
     return output;
 }).WithName("List");
 
-app.MapGet("/thumbnail",ImageHandlers.CreateThumbnail).WithName("Thumbnail");
+app.MapGet("/thumbnail", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
 app.MapGet("/view", ImageHandlers.CreateViewImage).WithName("View Image");
 
 app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
-
-internal record ListResult(String[] Directories, String[] files) { }
+internal record ListResult(String Path, String[] Directories, String[] files) { }

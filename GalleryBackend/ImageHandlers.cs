@@ -21,21 +21,20 @@ namespace GalleryBackend
 
             if (MimeTypes.GetMimeType(filename) == "image/gif")
             {
-                return Results.File(actualPath, contentType: "image/gif");
+                return Results.File(actualPath, contentType: "image/gif", fileDownloadName: filename);
             }
 
             using var image = Image.NewFromFile(actualPath, access: Enums.Access.Sequential);
 
             if (image.Width < Configurations.ViewImageWidth || image.Height < Configurations.ViewImageHeight)
             {
-                return Results.File(actualPath, contentType: MimeTypes.GetMimeType(Path.GetFileName(actualPath)));
+                return Results.File(actualPath, contentType: MimeTypes.GetMimeType(filename), fileDownloadName: filename);
             }
 
             using var thumb = image.ThumbnailImage(width: Configurations.ViewImageWidth, height: Configurations.ViewImageHeight, crop: Enums.Interesting.None);
-
             var output = thumb.WebpsaveBuffer();
 
-            return Results.Bytes(output, "image/webp");
+            return Results.Bytes(output, "image/webp", fileDownloadName: $"{filename}.webp");
         }
     }
 }
