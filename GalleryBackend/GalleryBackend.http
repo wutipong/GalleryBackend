@@ -1,6 +1,6 @@
-@GalleryBackend_HostAddress = http://localhost:32769
+@GalleryBackend_HostAddress = http://localhost:32768
 
-GET {{GalleryBackend_HostAddress}}/list?path=private%2F%5BDigital%20Photobook%5D%20Minami%20Aizawa%20-%20Count%20sheep%20Sleep%20%282021.04.13%29
+GET {{GalleryBackend_HostAddress}}/list
 Accept: application/json
 
 ###

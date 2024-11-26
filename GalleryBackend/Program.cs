@@ -1,3 +1,5 @@
+using GalleryBackend;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -31,10 +33,9 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-const string BASE_DIRECTORY = "/data";
 app.MapGet("/list", (String path="") =>
 {
-    var actualPath = Path.Combine(BASE_DIRECTORY, path);
+    var actualPath = Path.Combine(Configurations.BaseDirectory, path);
     var directories = Directory.GetDirectories(actualPath);
     var files = Directory.GetFiles(actualPath);
 
@@ -42,6 +43,9 @@ app.MapGet("/list", (String path="") =>
 
     return output;
 }).WithName("List");
+
+app.MapGet("/thumbnail",ImageHandlers.CreateThumbnail).WithName("Thumbnail");
+app.MapGet("/view", ImageHandlers.CreateViewImage).WithName("View Image");
 
 app.Run();
 
