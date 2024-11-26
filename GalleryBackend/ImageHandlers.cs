@@ -54,7 +54,7 @@ namespace GalleryBackend
 
             if (image.Width < Configurations.ViewImageWidth || image.Height < Configurations.ViewImageHeight)
             {
-                return Results.Stream(stream, contentType: MimeTypes.GetMimeType(filename), fileDownloadName: filename);
+                return Results.Stream(GetStream(path), contentType: MimeTypes.GetMimeType(filename), fileDownloadName: filename);
             }
 
             using var thumb = image.ThumbnailImage(

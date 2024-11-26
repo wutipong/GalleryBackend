@@ -49,17 +49,18 @@ app.MapGet("/get", (String path) =>
 
     if (paths.Length == 1)
     {
-        using var stream = PhysicalFS.ReadFile(actualPath);
+        var stream = PhysicalFS.ReadFile(actualPath);
         return Results.Stream(stream);
     }
 
     if (paths.Length == 2)
     {
-        return null;
+        var stream = ArchiveFS.ReadFile(paths[0], paths[1]);
+        return Results.Stream(stream);
     }
 
     throw new InvalidPathException(path, "Nested archive is not supported");
-});
+}).WithName("Get");
 
 app.Run();
 
