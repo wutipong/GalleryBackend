@@ -16,7 +16,7 @@
       },
       "publishAllPorts": true,
       "useSSL": false,
-      "containerRunArguments": "-v {ProjectDir}/data:/data"
+      "containerRunArguments": "-v {ProjectDir}/data:/data -p 8080:8080"
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"

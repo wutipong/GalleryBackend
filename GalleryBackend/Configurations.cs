@@ -1,8 +1,11 @@
-﻿namespace GalleryBackend
+﻿using PathLib;
+
+namespace GalleryBackend
 {
     public static class Configurations
     {
         public static String BaseDirectory { get; } = "/data";
+        public static PosixPath BaseDirectoryPath { get; } = new PosixPath(BaseDirectory);
 
         public static int ThumbnailWidth { get; } = 400;
         public static int ThumbnailHeight { get; } = 300;
