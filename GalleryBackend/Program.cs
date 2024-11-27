@@ -22,7 +22,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("/list", (String path = "") =>
+app.MapGet("/list", (string path = "") =>
 {
     var paths = PathUtility.SplitPathAfterArchiveFile(path);
 
@@ -42,7 +42,7 @@ app.MapGet("/list", (String path = "") =>
 app.MapGet("/thumbnail", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
 app.MapGet("/view", ImageHandlers.CreateViewImage).WithName("View Image");
 
-app.MapGet("/download/{*path}", (String path) =>
+app.MapGet("/download/{*path}", (string path) =>
 {
     var actualPath = Path.Combine(Configurations.BaseDirectory, path);
     var paths = PathUtility.SplitPathAfterArchiveFile(actualPath);
@@ -62,5 +62,5 @@ app.MapGet("/download/{*path}", (String path) =>
 
 app.Run();
 
-public record ListResult(String Path, String[] Directories, String[] Archives, String[] Files) { }
+public record ListResult(string Path, string[] Directories, string[] Archives, string[] Files) { }
 

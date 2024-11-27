@@ -7,7 +7,7 @@ namespace GalleryBackend
 {
     public class ArchiveFS
     {
-        public static ListResult List(String archivePath, String entryDirPath)
+        public static ListResult List(string archivePath, string entryDirPath)
         {
             var actualPath = new PosixPath(Configurations.BaseDirectory, archivePath);
             using var archive = ArchiveFactory.Open(actualPath.ToString());
@@ -21,7 +21,7 @@ namespace GalleryBackend
 
                 if (entryPathObj.Directory == entryDirPath)
                 {
-                    if (e.Key?.EndsWith('/') == true)
+                    if (e.IsDirectory)
                     {
                         directorySet.Add(archivePath + "/" + entryPathObj.ToString());
                     }
@@ -29,7 +29,9 @@ namespace GalleryBackend
                     {
                         var mimetype = MimeTypes.GetMimeType(entryPathObj.ToString());
 
-                        if (mimetype.StartsWith("image/") || mimetype.StartsWith("video/") || mimetype.StartsWith("audio/"))
+                        if (mimetype.StartsWith("image/") || 
+                            mimetype.StartsWith("video/") || 
+                            mimetype.StartsWith("audio/"))
                         {
                             files.AddLast(archivePath + "/" + entryPathObj.ToString());
                         }
@@ -45,7 +47,7 @@ namespace GalleryBackend
             );
         }
 
-        public static Stream ReadFile(String archivePath, String entryPath)
+        public static Stream ReadFile(string archivePath, string entryPath)
         {
             using var archive = ArchiveFactory.Open(archivePath);
 
@@ -60,7 +62,7 @@ namespace GalleryBackend
             return outstream;
         }
 
-        public static IResult SendFile(String archivePath, String entryPath)
+        public static IResult SendFile(string archivePath, string entryPath)
         {
             var steam = ReadFile(archivePath, entryPath);
 

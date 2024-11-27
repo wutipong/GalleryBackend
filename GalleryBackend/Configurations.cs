@@ -4,7 +4,7 @@ namespace GalleryBackend
 {
     public static class Configurations
     {
-        public static String BaseDirectory { get; } = "/data";
+        public static string BaseDirectory { get; } = "/data";
         public static PosixPath BaseDirectoryPath { get; } = new PosixPath(BaseDirectory);
 
         public static int ThumbnailWidth { get; } = 400;

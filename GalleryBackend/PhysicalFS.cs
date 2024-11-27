@@ -6,7 +6,7 @@ namespace GalleryBackend
 {
     public static class PhysicalFS
     {
-        public static ListResult List(String path)
+        public static ListResult List(string path)
         {
             var directories = new LinkedList<string>();
             var files = new LinkedList<string>();
@@ -50,12 +50,12 @@ namespace GalleryBackend
             return output;
         }
 
-        public static Stream ReadFile(String path)
+        public static Stream ReadFile(string path)
         {
             return new FileStream(path, FileMode.Open, FileAccess.Read);
         }
 
-        public static IResult SendFile(String path)
+        public static IResult SendFile(string path)
         {
             return Results.File(path, enableRangeProcessing: true);
         }
