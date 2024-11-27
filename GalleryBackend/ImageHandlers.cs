@@ -29,8 +29,8 @@ namespace GalleryBackend
 
             using var image = Image.NewFromStream(stream);
             using var thumb = image.ThumbnailImage(
-                width: Configurations.ThumbnailWidth, 
-                height: Configurations.ThumbnailHeight, 
+                width: Configurations.ThumbnailWidth,
+                height: Configurations.ThumbnailHeight,
                 crop: Enums.Interesting.Entropy
             );
 
@@ -43,26 +43,28 @@ namespace GalleryBackend
         {
             var filename = Path.GetFileName(path);
 
-            using var stream = GetStream(path);
-
             if (MimeTypes.GetMimeType(filename) == "image/gif")
             {
-                return Results.Stream(stream, contentType: "image/gif", fileDownloadName: filename);
+                return Results.Stream(GetStream(path), contentType: "image/gif", fileDownloadName: filename);
             }
 
+            using var stream = GetStream(path);
             using var image = Image.NewFromStream(stream);
 
+            byte[] output;
             if (image.Width < Configurations.ViewImageWidth || image.Height < Configurations.ViewImageHeight)
             {
-                return Results.Stream(GetStream(path), contentType: MimeTypes.GetMimeType(filename), fileDownloadName: filename);
+                output = image.WebpsaveBuffer();
             }
+            else
+            {
+                using var thumb = image.ThumbnailImage(
+                    width: Configurations.ViewImageWidth,
+                    height: Configurations.ViewImageHeight,
+                    crop: Enums.Interesting.None);
 
-            using var thumb = image.ThumbnailImage(
-                width: Configurations.ViewImageWidth, 
-                height: Configurations.ViewImageHeight, 
-                crop: Enums.Interesting.None);
-
-            var output = thumb.WebpsaveBuffer();
+                output = thumb.WebpsaveBuffer();
+            }
 
             return Results.Bytes(output, "image/webp", fileDownloadName: $"{filename}.webp");
         }
