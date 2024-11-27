@@ -54,5 +54,10 @@ namespace GalleryBackend
         {
             return new FileStream(path, FileMode.Open, FileAccess.Read);
         }
+
+        public static IResult SendFile(String path)
+        {
+            return Results.File(path, enableRangeProcessing: true);
+        }
     }
 }

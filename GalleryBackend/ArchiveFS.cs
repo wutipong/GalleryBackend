@@ -59,5 +59,12 @@ namespace GalleryBackend
 
             return outstream;
         }
+
+        public static IResult SendFile(String archivePath, String entryPath)
+        {
+            var steam = ReadFile(archivePath, entryPath);
+
+            return Results.Stream(steam, fileDownloadName: new PosixPath(entryPath).Filename, enableRangeProcessing: true);
+        }
     }
 }

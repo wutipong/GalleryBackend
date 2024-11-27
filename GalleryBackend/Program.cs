@@ -25,7 +25,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/list", (String path = "") =>
 {
     var paths = PathUtility.SplitPathAfterArchiveFile(path);
- 
+
     if (paths.Length == 1)
     {
         return PhysicalFS.List(path);
@@ -42,25 +42,23 @@ app.MapGet("/list", (String path = "") =>
 app.MapGet("/thumbnail", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
 app.MapGet("/view", ImageHandlers.CreateViewImage).WithName("View Image");
 
-app.MapGet("/get", (String path) =>
+app.MapGet("/download/{*path}", (String path) =>
 {
     var actualPath = Path.Combine(Configurations.BaseDirectory, path);
     var paths = PathUtility.SplitPathAfterArchiveFile(actualPath);
 
     if (paths.Length == 1)
     {
-        var stream = PhysicalFS.ReadFile(actualPath);
-        return Results.Stream(stream);
+        return PhysicalFS.SendFile(actualPath);
     }
 
     if (paths.Length == 2)
     {
-        var stream = ArchiveFS.ReadFile(paths[0], paths[1]);
-        return Results.Stream(stream);
+        return ArchiveFS.SendFile(paths[0], paths[1]);
     }
 
     throw new InvalidPathException(path, "Nested archive is not supported");
-}).WithName("Get");
+}).WithName("Download");
 
 app.Run();
 
