@@ -1,6 +1,9 @@
 ﻿using NaturalSort.Extension;
 using PathLib;
 using SharpCompress.Archives;
+using SharpCompress.Archives.Rar;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Factories;
 using System.IO;
 
 namespace GalleryBackend
@@ -49,9 +52,15 @@ namespace GalleryBackend
 
         public static Stream ReadFile(string archivePath, string entryPath)
         {
-            using var archive = ArchiveFactory.Open(archivePath);
+            var pathObj = new PosixPath(archivePath);
+            using var archive = pathObj.Extension switch {
+                ".cbz" => ZipArchive.Open(archivePath),
+                ".cbr" => RarArchive.Open(archivePath),
+                _ => ArchiveFactory.Open(archivePath)
+            };
 
-            var entry = archive.Entries.First((e) => e.Key == entryPath) ?? throw new Exception("entry not found");
+            var entry = archive.Entries.First((e) => e.Key == entryPath) ?? 
+                throw new Exception("entry not found");
 
             var stream = entry.OpenEntryStream();
             var outstream = new MemoryStream();
