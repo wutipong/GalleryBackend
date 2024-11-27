@@ -3,8 +3,6 @@ using PathLib;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
-using SharpCompress.Factories;
-using System.IO;
 
 namespace GalleryBackend
 {
@@ -32,8 +30,8 @@ namespace GalleryBackend
                     {
                         var mimetype = MimeTypes.GetMimeType(entryPathObj.ToString());
 
-                        if (mimetype.StartsWith("image/") || 
-                            mimetype.StartsWith("video/") || 
+                        if (mimetype.StartsWith("image/") ||
+                            mimetype.StartsWith("video/") ||
                             mimetype.StartsWith("audio/"))
                         {
                             files.AddLast(archivePath + "/" + entryPathObj.ToString());
@@ -53,13 +51,14 @@ namespace GalleryBackend
         public static Stream ReadFile(string archivePath, string entryPath)
         {
             var pathObj = new PosixPath(archivePath);
-            using var archive = pathObj.Extension switch {
+            using var archive = pathObj.Extension switch
+            {
                 ".cbz" => ZipArchive.Open(archivePath),
                 ".cbr" => RarArchive.Open(archivePath),
                 _ => ArchiveFactory.Open(archivePath)
             };
 
-            var entry = archive.Entries.First((e) => e.Key == entryPath) ?? 
+            var entry = archive.Entries.First((e) => e.Key == entryPath) ??
                 throw new Exception("entry not found");
 
             var stream = entry.OpenEntryStream();
@@ -75,7 +74,7 @@ namespace GalleryBackend
         {
             var steam = ReadFile(archivePath, entryPath);
 
-            return Results.Stream(steam, fileDownloadName: new PosixPath(entryPath).Filename, enableRangeProcessing: true);
+            return Results.Stream(steam, enableRangeProcessing: true);
         }
     }
 }

@@ -39,17 +39,17 @@ app.MapGet("/list", (string path = "") =>
     throw new InvalidPathException(path, "Nested archive is not supported");
 }).WithName("List");
 
-app.MapGet("/thumbnail", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
-app.MapGet("/view", ImageHandlers.CreateViewImage).WithName("View Image");
+app.MapGet("/get/thumbnail/{*path}", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
+app.MapGet("/get/image/{*path}", ImageHandlers.CreateViewImage).WithName("View Image");
 
-app.MapGet("/download/{*path}", (string path) =>
+app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
 {
-    var actualPath = Path.Combine(Configurations.BaseDirectory, path);
-    var paths = PathUtility.SplitPathAfterArchiveFile(actualPath);
+    var actualPath = new PosixPath(Configurations.BaseDirectory, path);
+    var paths = PathUtility.SplitPathAfterArchiveFile(actualPath.ToString());
 
     if (paths.Length == 1)
     {
-        return PhysicalFS.SendFile(actualPath);
+        return PhysicalFS.SendFile(paths[0]);
     }
 
     if (paths.Length == 2)
