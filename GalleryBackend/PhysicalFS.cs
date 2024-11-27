@@ -30,7 +30,10 @@ namespace GalleryBackend
 
                 else
                 {
-                    if (MimeTypes.GetMimeType(p.Filename).StartsWith("image/"))
+                    var mimetype = MimeTypes.GetMimeType(p.Filename);
+                    if (mimetype.StartsWith("image/") || 
+                        mimetype.StartsWith("video/") ||
+                        mimetype.StartsWith("audio/"))
                     {
                         files.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
                     }
