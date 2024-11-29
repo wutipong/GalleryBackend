@@ -1,23 +1,26 @@
-﻿using NaturalSort.Extension;
-using PathLib;
+﻿using PathLib;
 using Utility;
 
 namespace GalleryBackend
 {
     public static class PhysicalFS
     {
-        public static ListResult List(string path)
+        public static ListResult List(string path, SortField sort = SortField.Name,
+            Order order = Order.Ascending)
         {
-            var directories = new LinkedList<string>();
-            var files = new LinkedList<string>();
-            var archives = new LinkedList<string>();
+            var directories = new LinkedList<ListObject>();
+            var files = new LinkedList<ListObject>();
+            var archives = new LinkedList<ListObject>();
 
             var actualPath = new PosixPath(Configurations.BaseDirectory, path);
 
             foreach (var d in Directory.GetDirectories(actualPath.ToString()))
             {
                 var p = new PosixPath(d);
-                directories.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
+                directories.AddLast(
+                    new ListObject(Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                        DateTime: Directory.GetLastWriteTime(p.ToString())
+                    ));
             }
 
             foreach (var f in Directory.GetFiles(actualPath.ToString()))
@@ -25,26 +28,34 @@ namespace GalleryBackend
                 var p = new PosixPath(f);
                 if (PathUtility.HasArchiveFileExt(f))
                 {
-                    archives.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
+                    archives.AddLast(
+                        new ListObject(Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                            DateTime: File.GetLastWriteTime(p.ToString())
+                     ));
                 }
 
                 else
                 {
                     var mimetype = MimeTypes.GetMimeType(p.Filename);
-                    if (mimetype.StartsWith("image/") || 
+                    if (mimetype.StartsWith("image/") ||
                         mimetype.StartsWith("video/") ||
                         mimetype.StartsWith("audio/"))
                     {
-                        files.AddLast(p.RelativeTo(Configurations.BaseDirectoryPath).ToString());
+                        files.AddLast(
+                            new ListObject(Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                                DateTime: File.GetLastWriteTime(p.ToString())
+                        ));
                     }
                 }
             }
 
-            var output = new ListResult(
-                Path: path,
-                Directories: [.. directories.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
-                Archives: [.. archives.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
-                Files: [.. files.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())]
+            var output = ListResult.CreateSorted(
+                path,
+                directories,
+                archives,
+                files,
+                sort,
+                order
             );
 
             return output;

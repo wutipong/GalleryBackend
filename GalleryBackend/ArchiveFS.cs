@@ -1,5 +1,4 @@
-﻿using NaturalSort.Extension;
-using PathLib;
+﻿using PathLib;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
@@ -8,13 +7,17 @@ namespace GalleryBackend
 {
     public class ArchiveFS
     {
-        public static ListResult List(string archivePath, string entryDirPath)
+        public static ListResult List(
+            string archivePath,
+            string entryDirPath,
+            SortField sort = SortField.Name,
+            Order order = Order.Ascending)
         {
             var actualPath = new PosixPath(Configurations.BaseDirectory, archivePath);
             using var archive = ArchiveFactory.Open(actualPath.ToString());
 
-            var directorySet = new HashSet<string>();
-            var files = new LinkedList<string>();
+            var directorySet = new HashSet<ListObject>();
+            var files = new LinkedList<ListObject>();
 
             foreach (var e in archive.Entries)
             {
@@ -24,7 +27,10 @@ namespace GalleryBackend
                 {
                     if (e.IsDirectory)
                     {
-                        directorySet.Add(archivePath + "/" + entryPathObj.ToString());
+                        directorySet.Add(new ListObject(
+                            Name: archivePath + "/" + entryPathObj.ToString(),
+                            DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
+                        ));
                     }
                     else
                     {
@@ -34,17 +40,22 @@ namespace GalleryBackend
                             mimetype.StartsWith("video/") ||
                             mimetype.StartsWith("audio/"))
                         {
-                            files.AddLast(archivePath + "/" + entryPathObj.ToString());
+                            files.AddLast(new ListObject(
+                                Name: archivePath + "/" + entryPathObj.ToString(),
+                                DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
+                            ));
                         }
                     }
                 }
             }
 
-            return new ListResult(
-                Path: string.Join('/', archivePath, entryDirPath),
-                Directories: [.. directorySet.ToArray().OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())],
-                Archives: [],
-                Files: [.. files.OrderBy(s => s, StringComparison.OrdinalIgnoreCase.WithNaturalSort())]
+            return ListResult.CreateSorted(
+                path: string.Join('/', archivePath, entryDirPath),
+                directories: directorySet,
+                archives: [],
+                files,
+                sort, 
+                order
             );
         }
 

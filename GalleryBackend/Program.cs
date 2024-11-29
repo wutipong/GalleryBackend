@@ -1,9 +1,4 @@
 using GalleryBackend;
-using NaturalSort.Extension;
-using System.Collections.Generic;
-using SharpCompress.Archives.Zip;
-using SharpCompress.Archives.Rar;
-using System;
 using PathLib;
 using Utility;
 
@@ -22,18 +17,32 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("/list", (string path = "") =>
+app.MapGet("/list", (string path = "", string sortby="name", string order="ascending") =>
 {
     var paths = PathUtility.SplitPathAfterArchiveFile(path);
 
+    var sortVal = sortby switch
+    {
+        "name" => SortField.Name,
+        "dateTime" => SortField.DateTime,
+        _ => throw new NotImplementedException()
+    };
+
+    var orderVal = order switch
+    {
+        "ascending" => Order.Ascending,
+        "descending" => Order.Descending,
+        _ => throw new NotImplementedException(),
+    };
+
     if (paths.Length == 1)
     {
-        return PhysicalFS.List(path);
+        return PhysicalFS.List(path, sortVal, orderVal);
     }
 
     if (paths.Length == 2)
     {
-        return ArchiveFS.List(paths[0], paths[1]);
+        return ArchiveFS.List(paths[0], paths[1], sortVal, orderVal);
     }
 
     throw new InvalidPathException(path, "Nested archive is not supported");
@@ -61,6 +70,4 @@ app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
 }).WithName("Download");
 
 app.Run();
-
-public record ListResult(string Path, string[] Directories, string[] Archives, string[] Files) { }
 
