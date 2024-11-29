@@ -28,7 +28,7 @@ namespace GalleryBackend
                     if (e.IsDirectory)
                     {
                         directorySet.Add(new ListObject(
-                            Name: archivePath + "/" + entryPathObj.ToString(),
+                            Name: new PosixPath(archivePath + "/" + entryPathObj.ToString()).ToString(),
                             DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                         ));
                     }
@@ -41,7 +41,7 @@ namespace GalleryBackend
                             mimetype.StartsWith("audio/"))
                         {
                             files.AddLast(new ListObject(
-                                Name: archivePath + "/" + entryPathObj.ToString(),
+                                Name: new PosixPath(archivePath, entryPathObj.ToString()).ToString(),
                                 DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                             ));
                         }
@@ -50,7 +50,7 @@ namespace GalleryBackend
             }
 
             return ListResult.CreateSorted(
-                path: string.Join('/', archivePath, entryDirPath),
+                path: new PosixPath(archivePath, entryDirPath).ToString(),
                 directories: directorySet,
                 archives: [],
                 files,
