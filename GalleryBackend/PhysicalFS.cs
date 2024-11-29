@@ -63,14 +63,14 @@ namespace GalleryBackend
             return output;
         }
 
-        public static Stream ReadFile(string path)
+        public static Stream ReadFile(PosixPath path)
         {
-            return new FileStream(path, FileMode.Open, FileAccess.Read);
+            return path.Open(FileMode.Open);
         }
 
-        public static IResult SendFile(string path)
+        public static IResult SendFile(PosixPath path)
         {
-            return Results.File(path, enableRangeProcessing: true);
+            return Results.File(path.ToString(), enableRangeProcessing: true);
         }
     }
 }

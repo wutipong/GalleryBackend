@@ -65,12 +65,11 @@ namespace GalleryBackend
             );
         }
 
-        public static Stream ReadFile(string archivePath, string entryPath)
+        public static Stream ReadFile(PosixPath physicalPath, PosixPath archivePath)
         {
-            var pathObj = new PosixPath(archivePath);
-            using IArchive archive = OpenArchive(pathObj);
+            using IArchive archive = OpenArchive(physicalPath);
 
-            var entry = archive.Entries.First((e) => e.Key == entryPath) ??
+            var entry = archive.Entries.First((e) => e.Key == archivePath.ToString()) ??
                 throw new Exception("entry not found");
 
             var stream = entry.OpenEntryStream();
@@ -92,7 +91,7 @@ namespace GalleryBackend
             };
         }
 
-        public static IResult SendFile(string archivePath, string entryPath)
+        public static IResult SendFile(PosixPath archivePath, PosixPath entryPath)
         {
             var steam = ReadFile(archivePath, entryPath);
 

@@ -14,11 +14,11 @@ namespace GalleryBackend
 
             if (hasArchivePath)
             {
-                return ArchiveFS.ReadFile(physicalPath.ToString(), archivePath.ToString());
+                return ArchiveFS.ReadFile(physicalPath, archivePath);
             }
             else
             {
-                return PhysicalFS.ReadFile(physicalPath.ToString());
+                return PhysicalFS.ReadFile(physicalPath);
             }
         }
         public static IResult CreateThumbnail(string path)
