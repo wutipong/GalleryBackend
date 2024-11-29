@@ -19,7 +19,7 @@
             var parts = PathUtility.SplitPathAfterArchiveFile("root/abc.zip/somedir/file.jpg");
 
             Assert.Equal(["root/abc.zip", "somedir/file.jpg"], parts);
-            
+
         }
 
         [Fact]
