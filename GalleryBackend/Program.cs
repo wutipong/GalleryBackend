@@ -1,6 +1,5 @@
 using GalleryBackend;
 using PathLib;
-using Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 

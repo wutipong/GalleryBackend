@@ -1,4 +1,4 @@
-﻿namespace Utility
+﻿namespace GalleryBackend
 {
     public static class PathUtility
     {

@@ -14,7 +14,7 @@ namespace GalleryBackend
             Order order = Order.Ascending)
         {
             var actualPath = new PosixPath(Configurations.BaseDirectory, archivePath);
-            using var archive = ArchiveFactory.Open(actualPath.ToString());
+            using var archive = OpenArchive(actualPath);
 
             var directorySet = new HashSet<ListObject>();
             var files = new LinkedList<ListObject>();
@@ -28,7 +28,7 @@ namespace GalleryBackend
                     if (e.IsDirectory)
                     {
                         directorySet.Add(new ListObject(
-                            Name: new PosixPath(archivePath + "/" + entryPathObj.ToString()).ToString(),
+                            Name: new PosixPath(archivePath, entryPathObj.ToString()).ToString(),
                             DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                         ));
                     }
@@ -62,12 +62,7 @@ namespace GalleryBackend
         public static Stream ReadFile(string archivePath, string entryPath)
         {
             var pathObj = new PosixPath(archivePath);
-            using var archive = pathObj.Extension switch
-            {
-                ".cbz" => ZipArchive.Open(archivePath),
-                ".cbr" => RarArchive.Open(archivePath),
-                _ => ArchiveFactory.Open(archivePath)
-            };
+            using IArchive archive = OpenArchive(pathObj);
 
             var entry = archive.Entries.First((e) => e.Key == entryPath) ??
                 throw new Exception("entry not found");
@@ -79,6 +74,16 @@ namespace GalleryBackend
             outstream.Position = 0;
 
             return outstream;
+        }
+
+        private static IArchive OpenArchive(PosixPath path)
+        {
+            return path.Extension switch
+            {
+                ".cbz" => ZipArchive.Open(path.ToString()),
+                ".cbr" => RarArchive.Open(path.ToString()),
+                _ => ArchiveFactory.Open(path.ToString())
+            };
         }
 
         public static IResult SendFile(string archivePath, string entryPath)

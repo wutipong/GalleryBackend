@@ -1,4 +1,4 @@
-@GalleryBackend_HostAddress = http://localhost:32768
+@GalleryBackend_HostAddress = http://localhost:8080
 
 GET {{GalleryBackend_HostAddress}}/list
 Accept: application/json

@@ -1,6 +1,5 @@
 ﻿using NetVips;
 using PathLib;
-using Utility;
 
 namespace GalleryBackend
 {
@@ -8,12 +7,12 @@ namespace GalleryBackend
     {
         private static Stream GetStream(string path)
         {
-            var actualPath = Path.Combine(Configurations.BaseDirectory, path);
-            var paths = PathUtility.SplitPathAfterArchiveFile(actualPath);
+            var actualPath = new PosixPath(Configurations.BaseDirectory, path);
+            var paths = PathUtility.SplitPathAfterArchiveFile(actualPath.ToString());
 
             if (paths.Length == 1)
             {
-                return PhysicalFS.ReadFile(actualPath);
+                return PhysicalFS.ReadFile(paths[0]);
             }
 
             if (paths.Length == 2)
@@ -41,18 +40,22 @@ namespace GalleryBackend
 
         public static IResult CreateViewImage(string path)
         {
-            var filename = Path.GetFileName(path);
+            var filename = new PosixPath(path).Filename;
 
             if (MimeTypes.GetMimeType(filename) == "image/gif")
             {
-                return Results.Stream(GetStream(path), contentType: "image/gif", fileDownloadName: filename);
+                return Results.Stream(
+                    stream: GetStream(path), 
+                    contentType: "image/gif", 
+                    fileDownloadName: filename);
             }
 
             using var stream = GetStream(path);
             using var image = Image.NewFromStream(stream);
 
             byte[] output;
-            if (image.Width < Configurations.ViewImageWidth || image.Height < Configurations.ViewImageHeight)
+            if (image.Width < Configurations.ViewImageWidth || 
+                image.Height < Configurations.ViewImageHeight)
             {
                 output = image.WebpsaveBuffer();
             }
