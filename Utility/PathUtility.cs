@@ -4,7 +4,6 @@
     {
         public static string[] SplitPathAfterArchiveFile(string path)
         {
-
             var parts = path.Split('/');
             int start = 0;
 

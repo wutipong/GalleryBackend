@@ -1,31 +1,27 @@
 ﻿using NetVips;
 using PathLib;
-using Utility;
 
 namespace GalleryBackend
 {
     public static class ImageHandlers
     {
-        private static Stream GetStream(string path)
+        private static Stream GetStream(PosixPath path)
         {
-            var actualPath = Path.Combine(Configurations.BaseDirectory, path);
-            var paths = PathUtility.SplitPathAfterArchiveFile(actualPath);
+            var (physicalPath, archivePath, hasArchivePath) 
+                = PathUtility.SplitPathAfterArchiveFile(path);
 
-            if (paths.Length == 1)
+            if (hasArchivePath)
             {
-                return PhysicalFS.ReadFile(actualPath);
+                return ArchiveFS.ReadFile(physicalPath, archivePath);
             }
-
-            if (paths.Length == 2)
+            else
             {
-                return ArchiveFS.ReadFile(paths[0], paths[1]);
+                return PhysicalFS.ReadFile(physicalPath);
             }
-
-            throw new InvalidPathException(path, "Nested archive is not supported");
         }
         public static IResult CreateThumbnail(string path)
         {
-            using var stream = GetStream(path);
+            using var stream = GetStream(new PosixPath(path));
 
             using var image = Image.NewFromStream(stream);
             using var thumb = image.ThumbnailImage(
@@ -41,18 +37,22 @@ namespace GalleryBackend
 
         public static IResult CreateViewImage(string path)
         {
-            var filename = Path.GetFileName(path);
+            var pathObj = new PosixPath(path);
+            var filename = new PosixPath(path).Filename;
 
             if (MimeTypes.GetMimeType(filename) == "image/gif")
             {
-                return Results.Stream(GetStream(path), contentType: "image/gif", fileDownloadName: filename);
+                return Results.Stream(
+                    stream: GetStream(pathObj),
+                    fileDownloadName: filename);
             }
 
-            using var stream = GetStream(path);
+            using var stream = GetStream(pathObj);
             using var image = Image.NewFromStream(stream);
 
             byte[] output;
-            if (image.Width < Configurations.ViewImageWidth || image.Height < Configurations.ViewImageHeight)
+            if (image.Width < Configurations.ViewImageWidth ||
+                image.Height < Configurations.ViewImageHeight)
             {
                 output = image.WebpsaveBuffer();
             }
@@ -66,7 +66,9 @@ namespace GalleryBackend
                 output = thumb.WebpsaveBuffer();
             }
 
-            return Results.Bytes(output, "image/webp", fileDownloadName: $"{filename}.webp");
+            return Results.Bytes(
+                output, 
+                fileDownloadName: $"{filename}.webp");
         }
     }
 }

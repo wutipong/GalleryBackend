@@ -1,6 +1,5 @@
 using GalleryBackend;
 using PathLib;
-using Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +16,8 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("/list", (string path = "", string sortby="name", string order="ascending") =>
+app.MapGet("/list", (string path = "", string sortby = "name", string order = "ascending") =>
 {
-    var paths = PathUtility.SplitPathAfterArchiveFile(path);
-
     var sortVal = sortby switch
     {
         "name" => SortField.Name,
@@ -35,17 +32,17 @@ app.MapGet("/list", (string path = "", string sortby="name", string order="ascen
         _ => throw new NotImplementedException(),
     };
 
-    if (paths.Length == 1)
-    {
-        return PhysicalFS.List(path, sortVal, orderVal);
-    }
+    var (physicalPath, archivePath, hasArchivePath)
+                = PathUtility.SplitPathAfterArchiveFile(new PosixPath(path));
 
-    if (paths.Length == 2)
+    if (hasArchivePath)
     {
-        return ArchiveFS.List(paths[0], paths[1], sortVal, orderVal);
+        return ArchiveFS.List(physicalPath, archivePath, sortVal, orderVal);
     }
-
-    throw new InvalidPathException(path, "Nested archive is not supported");
+    else
+    {
+        return PhysicalFS.List(physicalPath, sortVal, orderVal);
+    }
 }).WithName("List");
 
 app.MapGet("/get/thumbnail/{*path}", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
@@ -53,20 +50,17 @@ app.MapGet("/get/image/{*path}", ImageHandlers.CreateViewImage).WithName("View I
 
 app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
 {
-    var actualPath = new PosixPath(Configurations.BaseDirectory, path);
-    var paths = PathUtility.SplitPathAfterArchiveFile(actualPath.ToString());
+    var (physicalPath, archivePath, hasArchivePath)
+                = PathUtility.SplitPathAfterArchiveFile(new PosixPath(path));
 
-    if (paths.Length == 1)
+    if (hasArchivePath)
     {
-        return PhysicalFS.SendFile(paths[0]);
+        return ArchiveFS.SendFile(physicalPath, archivePath);
     }
-
-    if (paths.Length == 2)
+    else
     {
-        return ArchiveFS.SendFile(paths[0], paths[1]);
+        return PhysicalFS.SendFile(physicalPath);
     }
-
-    throw new InvalidPathException(path, "Nested archive is not supported");
 }).WithName("Download");
 
 app.Run();

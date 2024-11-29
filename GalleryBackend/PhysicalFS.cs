@@ -1,56 +1,61 @@
 ﻿using PathLib;
-using Utility;
 
 namespace GalleryBackend
 {
     public static class PhysicalFS
     {
-        public static ListResult List(string path, SortField sort = SortField.Name,
+        public static ListResult List(PosixPath path, SortField sort = SortField.Name,
             Order order = Order.Ascending)
         {
             var directories = new LinkedList<ListObject>();
             var files = new LinkedList<ListObject>();
             var archives = new LinkedList<ListObject>();
 
-            var actualPath = new PosixPath(Configurations.BaseDirectory, path);
+            var actualPath = Configurations.BaseDirectoryPath.Join(path);
 
-            foreach (var d in Directory.GetDirectories(actualPath.ToString()))
+            foreach (var p in actualPath.ListDir(SearchOption.TopDirectoryOnly))
             {
-                var p = new PosixPath(d);
-                directories.AddLast(
-                    new ListObject(Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
-                        DateTime: Directory.GetLastWriteTime(p.ToString())
-                    ));
-            }
-
-            foreach (var f in Directory.GetFiles(actualPath.ToString()))
-            {
-                var p = new PosixPath(f);
-                if (PathUtility.HasArchiveFileExt(f))
-                {
-                    archives.AddLast(
-                        new ListObject(Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
-                            DateTime: File.GetLastWriteTime(p.ToString())
-                     ));
-                }
-
-                else
-                {
-                    var mimetype = MimeTypes.GetMimeType(p.Filename);
-                    if (mimetype.StartsWith("image/") ||
-                        mimetype.StartsWith("video/") ||
-                        mimetype.StartsWith("audio/"))
-                    {
-                        files.AddLast(
-                            new ListObject(Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
-                                DateTime: File.GetLastWriteTime(p.ToString())
+                if(p.IsDir()){
+                    directories.AddLast(
+                        new ListObject(
+                            Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                            DateTime: p.DirectoryInfo.LastWriteTime
                         ));
+                } else
+                {
+                    if (PathUtility.HasArchiveFileExt(p))
+                    {
+                        archives.AddLast(
+                            new ListObject(
+                                Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                                DateTime: p.FileInfo.LastWriteTime
+                         ));
+                    }
+                    else
+                    {
+                        var mimetype = MimeTypes.GetMimeType(p.Filename);
+                        if (mimetype.StartsWith("image/") ||
+                            mimetype.StartsWith("video/") ||
+                            mimetype.StartsWith("audio/"))
+                        {
+                            files.AddLast(
+                                new ListObject(
+                                    Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                                    DateTime: p.FileInfo.LastWriteTime
+                            ));
+                        }
                     }
                 }
             }
 
+            var pathString = path.ToString();
+            if (pathString == ".")
+            {
+                pathString = "";
+            }
+
             var output = ListResult.CreateSorted(
-                path,
+                pathString,
                 directories,
                 archives,
                 files,
@@ -61,14 +66,16 @@ namespace GalleryBackend
             return output;
         }
 
-        public static Stream ReadFile(string path)
+        public static Stream ReadFile(PosixPath path)
         {
-            return new FileStream(path, FileMode.Open, FileAccess.Read);
+            return Configurations.BaseDirectoryPath.Join(path).Open(FileMode.Open);
         }
 
-        public static IResult SendFile(string path)
+        public static IResult SendFile(PosixPath path)
         {
-            return Results.File(path, enableRangeProcessing: true);
+            return Results.File(
+                Configurations.BaseDirectoryPath.Join(path).ToString(), 
+                enableRangeProcessing: true);
         }
     }
 }

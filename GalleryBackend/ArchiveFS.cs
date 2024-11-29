@@ -2,46 +2,53 @@
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
+using System.IO;
 
 namespace GalleryBackend
 {
     public class ArchiveFS
     {
         public static ListResult List(
-            string archivePath,
-            string entryDirPath,
+            PosixPath physicalPath,
+            PosixPath archivePath,
             SortField sort = SortField.Name,
             Order order = Order.Ascending)
         {
-            var actualPath = new PosixPath(Configurations.BaseDirectory, archivePath);
-            using var archive = ArchiveFactory.Open(actualPath.ToString());
+            var actualPath = Configurations.BaseDirectoryPath.Join(physicalPath);
+            using var archive = OpenArchive(actualPath);
 
             var directorySet = new HashSet<ListObject>();
             var files = new LinkedList<ListObject>();
 
+            var archivePathStr = archivePath.ToString();
+            if (archivePathStr == ".")
+            {
+                archivePathStr = "";
+            }
+
             foreach (var e in archive.Entries)
             {
-                var entryPathObj = new PosixPath(e.Key);
+                var entryPath = new PosixPath(e.Key);
 
-                if (entryPathObj.Directory == entryDirPath)
+                if (entryPath.Directory == archivePathStr)
                 {
                     if (e.IsDirectory)
                     {
                         directorySet.Add(new ListObject(
-                            Name: new PosixPath(archivePath + "/" + entryPathObj.ToString()).ToString(),
+                            Name: physicalPath.Join(entryPath).ToString(),
                             DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                         ));
                     }
                     else
                     {
-                        var mimetype = MimeTypes.GetMimeType(entryPathObj.ToString());
+                        var mimetype = MimeTypes.GetMimeType(entryPath.Filename);
 
                         if (mimetype.StartsWith("image/") ||
                             mimetype.StartsWith("video/") ||
                             mimetype.StartsWith("audio/"))
                         {
                             files.AddLast(new ListObject(
-                                Name: new PosixPath(archivePath, entryPathObj.ToString()).ToString(),
+                                Name: physicalPath.Join(entryPath).ToString(),
                                 DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                             ));
                         }
@@ -50,7 +57,7 @@ namespace GalleryBackend
             }
 
             return ListResult.CreateSorted(
-                path: new PosixPath(archivePath, entryDirPath).ToString(),
+                path: physicalPath.Join(archivePath).ToString(),
                 directories: directorySet,
                 archives: [],
                 files,
@@ -59,17 +66,11 @@ namespace GalleryBackend
             );
         }
 
-        public static Stream ReadFile(string archivePath, string entryPath)
+        public static Stream ReadFile(PosixPath physicalPath, PosixPath archivePath)
         {
-            var pathObj = new PosixPath(archivePath);
-            using var archive = pathObj.Extension switch
-            {
-                ".cbz" => ZipArchive.Open(archivePath),
-                ".cbr" => RarArchive.Open(archivePath),
-                _ => ArchiveFactory.Open(archivePath)
-            };
+            using IArchive archive = OpenArchive(Configurations.BaseDirectoryPath.Join(physicalPath));
 
-            var entry = archive.Entries.First((e) => e.Key == entryPath) ??
+            var entry = archive.Entries.First((e) => e.Key == archivePath.ToString()) ??
                 throw new Exception("entry not found");
 
             var stream = entry.OpenEntryStream();
@@ -81,7 +82,17 @@ namespace GalleryBackend
             return outstream;
         }
 
-        public static IResult SendFile(string archivePath, string entryPath)
+        private static IArchive OpenArchive(PosixPath path)
+        {
+            return path.Extension switch
+            {
+                ".cbz" => ZipArchive.Open(path.ToString()),
+                ".cbr" => RarArchive.Open(path.ToString()),
+                _ => ArchiveFactory.Open(path.ToString())
+            };
+        }
+
+        public static IResult SendFile(PosixPath archivePath, PosixPath entryPath)
         {
             var steam = ReadFile(archivePath, entryPath);
 
