@@ -13,7 +13,6 @@ namespace GalleryBackend
 
             var actualPath = Configurations.BaseDirectoryPath.Join(path);
 
-            
             foreach (var p in actualPath.ListDir(SearchOption.TopDirectoryOnly))
             {
                 if(p.IsDir()){

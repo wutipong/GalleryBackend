@@ -37,7 +37,7 @@ app.MapGet("/list", (string path = "", string sortby = "name", string order = "a
 
     if (hasArchivePath)
     {
-        return ArchiveFS.List(physicalPath.ToString(), archivePath.ToString(), sortVal, orderVal);
+        return ArchiveFS.List(physicalPath, archivePath, sortVal, orderVal);
     }
     else
     {

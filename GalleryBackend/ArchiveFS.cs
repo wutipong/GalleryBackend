@@ -8,40 +8,46 @@ namespace GalleryBackend
     public class ArchiveFS
     {
         public static ListResult List(
-            string archivePath,
-            string entryDirPath,
+            PosixPath physicalPath,
+            PosixPath archivePath,
             SortField sort = SortField.Name,
             Order order = Order.Ascending)
         {
-            var actualPath = new PosixPath(Configurations.BaseDirectory, archivePath);
+            var actualPath = Configurations.BaseDirectoryPath.Join(physicalPath);
             using var archive = OpenArchive(actualPath);
 
             var directorySet = new HashSet<ListObject>();
             var files = new LinkedList<ListObject>();
 
+            var archivePathStr = archivePath.ToString();
+            if (archivePathStr == ".")
+            {
+                archivePathStr = "";
+            }
+
             foreach (var e in archive.Entries)
             {
-                var entryPathObj = new PosixPath(e.Key);
+                var entryPath = new PosixPath(e.Key);
 
-                if (entryPathObj.Directory == entryDirPath)
+                if (entryPath.Directory == archivePathStr)
                 {
                     if (e.IsDirectory)
                     {
                         directorySet.Add(new ListObject(
-                            Name: new PosixPath(archivePath, entryPathObj.ToString()).ToString(),
+                            Name: physicalPath.Join(entryPath).ToString(),
                             DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                         ));
                     }
                     else
                     {
-                        var mimetype = MimeTypes.GetMimeType(entryPathObj.ToString());
+                        var mimetype = MimeTypes.GetMimeType(entryPath.ToString());
 
                         if (mimetype.StartsWith("image/") ||
                             mimetype.StartsWith("video/") ||
                             mimetype.StartsWith("audio/"))
                         {
                             files.AddLast(new ListObject(
-                                Name: new PosixPath(archivePath, entryPathObj.ToString()).ToString(),
+                                Name: physicalPath.Join(entryPath).ToString(),
                                 DateTime: e.LastModifiedTime ?? DateTime.UnixEpoch
                             ));
                         }
@@ -50,7 +56,7 @@ namespace GalleryBackend
             }
 
             return ListResult.CreateSorted(
-                path: new PosixPath(archivePath, entryDirPath).ToString(),
+                path: physicalPath.Join(archivePath).ToString(),
                 directories: directorySet,
                 archives: [],
                 files,
