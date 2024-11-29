@@ -4,3 +4,7 @@ GET {{GalleryBackend_HostAddress}}/list
 Accept: application/json
 
 ###
+
+
+GET {{GalleryBackend_HostAddress}}/list?path=private
+Accept: application/json
