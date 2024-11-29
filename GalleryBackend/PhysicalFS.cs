@@ -68,7 +68,7 @@ namespace GalleryBackend
 
         public static Stream ReadFile(PosixPath path)
         {
-            return Configurations.BaseDirectoryPath.Join(path).Open(FileMode.Open);
+            return Configurations.BaseDirectoryPath.Join(path).FileInfo.OpenRead();
         }
 
         public static IResult SendFile(PosixPath path)
