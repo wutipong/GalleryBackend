@@ -8,19 +8,18 @@ namespace GalleryBackend
         private static Stream GetStream(string path)
         {
             var actualPath = new PosixPath(Configurations.BaseDirectory, path);
-            var paths = PathUtility.SplitPathAfterArchiveFile(actualPath.ToString());
 
-            if (paths.Length == 1)
+            var (physicalPath, archivePath, hasArchivePath) 
+                = PathUtility.SplitPathAfterArchiveFile(actualPath);
+
+            if (hasArchivePath)
             {
-                return PhysicalFS.ReadFile(paths[0]);
+                return ArchiveFS.ReadFile(physicalPath.ToString(), archivePath.ToString());
             }
-
-            if (paths.Length == 2)
+            else
             {
-                return ArchiveFS.ReadFile(paths[0], paths[1]);
+                return PhysicalFS.ReadFile(physicalPath.ToString());
             }
-
-            throw new InvalidPathException(path, "Nested archive is not supported");
         }
         public static IResult CreateThumbnail(string path)
         {
@@ -45,8 +44,8 @@ namespace GalleryBackend
             if (MimeTypes.GetMimeType(filename) == "image/gif")
             {
                 return Results.Stream(
-                    stream: GetStream(path), 
-                    contentType: "image/gif", 
+                    stream: GetStream(path),
+                    contentType: "image/gif",
                     fileDownloadName: filename);
             }
 
@@ -54,7 +53,7 @@ namespace GalleryBackend
             using var image = Image.NewFromStream(stream);
 
             byte[] output;
-            if (image.Width < Configurations.ViewImageWidth || 
+            if (image.Width < Configurations.ViewImageWidth ||
                 image.Height < Configurations.ViewImageHeight)
             {
                 output = image.WebpsaveBuffer();

@@ -16,10 +16,8 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("/list", (string path = "", string sortby="name", string order="ascending") =>
+app.MapGet("/list", (string path = "", string sortby = "name", string order = "ascending") =>
 {
-    var paths = PathUtility.SplitPathAfterArchiveFile(path);
-
     var sortVal = sortby switch
     {
         "name" => SortField.Name,
@@ -34,17 +32,17 @@ app.MapGet("/list", (string path = "", string sortby="name", string order="ascen
         _ => throw new NotImplementedException(),
     };
 
-    if (paths.Length == 1)
-    {
-        return PhysicalFS.List(path, sortVal, orderVal);
-    }
+    var (physicalPath, archivePath, hasArchivePath)
+                = PathUtility.SplitPathAfterArchiveFile(new PosixPath(path));
 
-    if (paths.Length == 2)
+    if (hasArchivePath)
     {
-        return ArchiveFS.List(paths[0], paths[1], sortVal, orderVal);
+        return ArchiveFS.List(physicalPath.ToString(), archivePath.ToString());
     }
-
-    throw new InvalidPathException(path, "Nested archive is not supported");
+    else
+    {
+        return PhysicalFS.List(physicalPath.ToString());
+    }
 }).WithName("List");
 
 app.MapGet("/get/thumbnail/{*path}", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
@@ -55,17 +53,17 @@ app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
     var actualPath = new PosixPath(Configurations.BaseDirectory, path);
     var paths = PathUtility.SplitPathAfterArchiveFile(actualPath.ToString());
 
-    if (paths.Length == 1)
-    {
-        return PhysicalFS.SendFile(paths[0]);
-    }
+    var (physicalPath, archivePath, hasArchivePath)
+                = PathUtility.SplitPathAfterArchiveFile(actualPath);
 
-    if (paths.Length == 2)
+    if (hasArchivePath)
     {
-        return ArchiveFS.SendFile(paths[0], paths[1]);
+        return ArchiveFS.SendFile(physicalPath.ToString(), archivePath.ToString());
     }
-
-    throw new InvalidPathException(path, "Nested archive is not supported");
+    else
+    {
+        return PhysicalFS.SendFile(physicalPath.ToString());
+    }
 }).WithName("Download");
 
 app.Run();
