@@ -5,12 +5,10 @@ namespace GalleryBackend
 {
     public static class ImageHandlers
     {
-        private static Stream GetStream(string path)
+        private static Stream GetStream(PosixPath path)
         {
-            var actualPath = new PosixPath(Configurations.BaseDirectory, path);
-
             var (physicalPath, archivePath, hasArchivePath) 
-                = PathUtility.SplitPathAfterArchiveFile(actualPath);
+                = PathUtility.SplitPathAfterArchiveFile(path);
 
             if (hasArchivePath)
             {
@@ -23,7 +21,7 @@ namespace GalleryBackend
         }
         public static IResult CreateThumbnail(string path)
         {
-            using var stream = GetStream(path);
+            using var stream = GetStream(new PosixPath(path));
 
             using var image = Image.NewFromStream(stream);
             using var thumb = image.ThumbnailImage(
@@ -39,17 +37,17 @@ namespace GalleryBackend
 
         public static IResult CreateViewImage(string path)
         {
+            var pathObj = new PosixPath(path);
             var filename = new PosixPath(path).Filename;
 
             if (MimeTypes.GetMimeType(filename) == "image/gif")
             {
                 return Results.Stream(
-                    stream: GetStream(path),
-                    contentType: "image/gif",
+                    stream: GetStream(pathObj),
                     fileDownloadName: filename);
             }
 
-            using var stream = GetStream(path);
+            using var stream = GetStream(pathObj);
             using var image = Image.NewFromStream(stream);
 
             byte[] output;
@@ -68,7 +66,9 @@ namespace GalleryBackend
                 output = thumb.WebpsaveBuffer();
             }
 
-            return Results.Bytes(output, "image/webp", fileDownloadName: $"{filename}.webp");
+            return Results.Bytes(
+                output, 
+                fileDownloadName: $"{filename}.webp");
         }
     }
 }

@@ -2,6 +2,7 @@
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
+using System.IO;
 
 namespace GalleryBackend
 {
@@ -40,7 +41,7 @@ namespace GalleryBackend
                     }
                     else
                     {
-                        var mimetype = MimeTypes.GetMimeType(entryPath.ToString());
+                        var mimetype = MimeTypes.GetMimeType(entryPath.Filename);
 
                         if (mimetype.StartsWith("image/") ||
                             mimetype.StartsWith("video/") ||
@@ -67,7 +68,7 @@ namespace GalleryBackend
 
         public static Stream ReadFile(PosixPath physicalPath, PosixPath archivePath)
         {
-            using IArchive archive = OpenArchive(physicalPath);
+            using IArchive archive = OpenArchive(Configurations.BaseDirectoryPath.Join(physicalPath));
 
             var entry = archive.Entries.First((e) => e.Key == archivePath.ToString()) ??
                 throw new Exception("entry not found");

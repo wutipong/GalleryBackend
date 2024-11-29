@@ -50,11 +50,8 @@ app.MapGet("/get/image/{*path}", ImageHandlers.CreateViewImage).WithName("View I
 
 app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
 {
-    var actualPath = new PosixPath(Configurations.BaseDirectory, path);
-    var paths = PathUtility.SplitPathAfterArchiveFile(actualPath.ToString());
-
     var (physicalPath, archivePath, hasArchivePath)
-                = PathUtility.SplitPathAfterArchiveFile(actualPath);
+                = PathUtility.SplitPathAfterArchiveFile(new PosixPath(path));
 
     if (hasArchivePath)
     {

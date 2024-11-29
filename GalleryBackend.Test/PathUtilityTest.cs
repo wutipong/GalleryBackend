@@ -9,7 +9,7 @@
         public void TestNoArchive()
         {
             var ( physicalPath,  archivePath,  hasArchivePath) 
-                = PathUtility.SplitPathAfterArchiveFile(new PosixPath("root/somedir/file.jpg"));
+                = new PosixPath("root/somedir/file.jpg").SplitPathAfterArchiveFile();
 
             Assert.False(hasArchivePath);
             Assert.Equal("root/somedir/file.jpg", physicalPath.ToString());
@@ -20,7 +20,7 @@
         public void TestOneArchive()
         {
             var (physicalPath, archivePath, hasArchivePath)
-                = PathUtility.SplitPathAfterArchiveFile( new PosixPath("root/abc.zip/somedir/file.jpg"));
+                = new PosixPath("root/abc.zip/somedir/file.jpg").SplitPathAfterArchiveFile();
 
             Assert.True(hasArchivePath);
             Assert.Equal("root/abc.zip", physicalPath.ToString());
@@ -31,7 +31,7 @@
         public void TestOneArchiveRoot()
         {
             var (physicalPath, archivePath, hasArchivePath)
-                = PathUtility.SplitPathAfterArchiveFile(new PosixPath("root/abc.zip"));
+                = new PosixPath("root/abc.zip").SplitPathAfterArchiveFile();
 
             Assert.True(hasArchivePath);
             Assert.Equal("root/abc.zip", physicalPath.ToString());
