@@ -46,6 +46,8 @@ app.MapGet("/list", (string path = "", string sortby = "name", string order = "a
 }).WithName("List");
 
 app.MapGet("/get/thumbnail/{*path}", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
+app.MapGet("/get/list_thumbnail/{*path}", (string path) => ImageHandlers.CreateThumbnail(path, ThumbnailType.List)).WithName("Thumbnail for list");
+app.MapGet("/get/grid_thumbnail/{*path}", (string path) => ImageHandlers.CreateThumbnail(path, ThumbnailType.Grid)).WithName("Thumbnail for grid");
 app.MapGet("/get/image/{*path}", ImageHandlers.CreateViewImage).WithName("View Image");
 
 app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
