@@ -16,32 +16,18 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("/list", (string path = "", string sortby = "name", string order = "ascending") =>
+app.MapGet("/list", (string path = "") =>
 {
-    var sortVal = sortby switch
-    {
-        "name" => SortField.Name,
-        "dateTime" => SortField.DateTime,
-        _ => throw new NotImplementedException()
-    };
-
-    var orderVal = order switch
-    {
-        "ascending" => Order.Ascending,
-        "descending" => Order.Descending,
-        _ => throw new NotImplementedException(),
-    };
-
     var (physicalPath, archivePath, hasArchivePath)
                 = PathUtility.SplitPathAfterArchiveFile(new PosixPath(path));
 
     if (hasArchivePath)
     {
-        return ArchiveFS.List(physicalPath, archivePath, sortVal, orderVal);
+        return ArchiveFS.List(physicalPath, archivePath);
     }
     else
     {
-        return PhysicalFS.List(physicalPath, sortVal, orderVal);
+        return PhysicalFS.List(physicalPath);
     }
 }).WithName("List");
 
