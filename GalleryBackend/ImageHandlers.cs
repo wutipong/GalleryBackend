@@ -3,11 +3,15 @@ using PathLib;
 
 namespace GalleryBackend
 {
+    public enum ThumbnailType
+    {
+        Grid, List
+    }
     public static class ImageHandlers
     {
         private static Stream GetStream(PosixPath path)
         {
-            var (physicalPath, archivePath, hasArchivePath) 
+            var (physicalPath, archivePath, hasArchivePath)
                 = PathUtility.SplitPathAfterArchiveFile(path);
 
             if (hasArchivePath)
@@ -19,16 +23,26 @@ namespace GalleryBackend
                 return PhysicalFS.ReadFile(physicalPath);
             }
         }
-        public static IResult CreateThumbnail(string path)
+        public static IResult CreateThumbnail(string path, ThumbnailType type = ThumbnailType.Grid)
         {
             using var stream = GetStream(new PosixPath(path));
-
             using var image = Image.NewFromStream(stream);
-            using var thumb = image.ThumbnailImage(
-                width: Configurations.ThumbnailWidth,
-                height: Configurations.ThumbnailHeight,
-                crop: Enums.Interesting.Entropy
-            );
+
+            var scale = image.Width > image.Height ?
+                (double)Configurations.ListThumbnailWidth / (double)image.Width :
+                (double)Configurations.ListThumbnailHeight / (double)image.Height;
+
+            using var thumb = type switch
+            {
+                ThumbnailType.Grid => image.ThumbnailImage(
+                    width: Configurations.GridThumbnailWidth,
+                    height: Configurations.GridThumbnailHeight,
+                    crop: Enums.Interesting.Entropy
+                ),
+
+                ThumbnailType.List => image.Resize(scale),
+                _ => throw new NotImplementedException(),
+            };
 
             var output = thumb.JpegsaveBuffer();
 
@@ -67,7 +81,7 @@ namespace GalleryBackend
             }
 
             return Results.Bytes(
-                output, 
+                output,
                 fileDownloadName: $"{filename}.webp");
         }
     }
