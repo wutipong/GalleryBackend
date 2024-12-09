@@ -10,9 +10,7 @@ namespace GalleryBackend
     {
         public static ListResult List(
             PosixPath physicalPath,
-            PosixPath archivePath,
-            SortField sort = SortField.Name,
-            Order order = Order.Ascending)
+            PosixPath archivePath)
         {
             var actualPath = Configurations.BaseDirectoryPath.Join(physicalPath);
             using var archive = OpenArchive(actualPath);
@@ -56,13 +54,11 @@ namespace GalleryBackend
                 }
             }
 
-            return ListResult.CreateSorted(
-                path: physicalPath.Join(archivePath).ToString(),
-                directories: directorySet,
-                archives: [],
-                files,
-                sort, 
-                order
+            return new ListResult(
+                Path: physicalPath.Join(archivePath).ToString(),
+                Directories: [..directorySet],
+                Archives: [],
+                Files: [..files]
             );
         }
 

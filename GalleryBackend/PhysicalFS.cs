@@ -4,8 +4,7 @@ namespace GalleryBackend
 {
     public static class PhysicalFS
     {
-        public static ListResult List(PosixPath path, SortField sort = SortField.Name,
-            Order order = Order.Ascending)
+        public static ListResult List(PosixPath path)
         {
             var directories = new LinkedList<ListObject>();
             var files = new LinkedList<ListObject>();
@@ -54,13 +53,11 @@ namespace GalleryBackend
                 pathString = "";
             }
 
-            var output = ListResult.CreateSorted(
+            var output = new ListResult(
                 pathString,
-                directories,
-                archives,
-                files,
-                sort,
-                order
+                [.. directories],
+                [.. archives],
+                [.. files]
             );
 
             return output;
