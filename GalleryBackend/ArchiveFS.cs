@@ -56,9 +56,9 @@ namespace GalleryBackend
 
             return new ListResult(
                 Path: physicalPath.Join(archivePath).ToString(),
-                Directories: [..directorySet],
+                Directories: directorySet,
                 Archives: [],
-                Files: [..files]
+                Files: files
             );
         }
 

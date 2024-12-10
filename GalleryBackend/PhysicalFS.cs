@@ -14,13 +14,15 @@ namespace GalleryBackend
 
             foreach (var p in actualPath.ListDir(SearchOption.TopDirectoryOnly))
             {
-                if(p.IsDir()){
+                if (p.IsDir())
+                {
                     directories.AddLast(
                         new ListObject(
                             Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
                             DateTime: p.DirectoryInfo.LastWriteTime
                         ));
-                } else
+                }
+                else
                 {
                     if (PathUtility.HasArchiveFileExt(p))
                     {
@@ -54,10 +56,10 @@ namespace GalleryBackend
             }
 
             var output = new ListResult(
-                pathString,
-                [.. directories],
-                [.. archives],
-                [.. files]
+                Path: pathString,
+                Directories: directories,
+                Archives: archives,
+                Files: files
             );
 
             return output;
@@ -71,7 +73,7 @@ namespace GalleryBackend
         public static IResult SendFile(PosixPath path)
         {
             return Results.File(
-                Configurations.BaseDirectoryPath.Join(path).ToString(), 
+                Configurations.BaseDirectoryPath.Join(path).ToString(),
                 enableRangeProcessing: true);
         }
     }
