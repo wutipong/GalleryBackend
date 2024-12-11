@@ -43,11 +43,11 @@ app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
 
     if (hasArchivePath)
     {
-        return ArchiveFS.SendFile(physicalPath, archivePath);
+        return ArchiveFS.SendFile(http, physicalPath, archivePath);
     }
     else
     {
-        return PhysicalFS.SendFile(physicalPath);
+        return PhysicalFS.SendFile(http, physicalPath);
     }
 }).WithName("Download");
 
