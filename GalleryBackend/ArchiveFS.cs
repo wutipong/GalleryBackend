@@ -1,4 +1,5 @@
-﻿using PathLib;
+﻿using Microsoft.Net.Http.Headers;
+using PathLib;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
@@ -88,11 +89,18 @@ namespace GalleryBackend
             };
         }
 
-        public static IResult SendFile(PosixPath archivePath, PosixPath entryPath)
+        public static IResult SendFile(HttpContext http, PosixPath archivePath, PosixPath entryPath)
         {
+            var disposition = new ContentDispositionHeaderValue(dispositionType: "inline");
+            disposition.SetHttpFileName(entryPath.Filename);
+
+            http.Response.Headers.ContentDisposition = disposition.ToString();
+
             var steam = ReadFile(archivePath, entryPath);
 
-            return Results.Stream(steam, enableRangeProcessing: true);
+            return Results.Stream(steam,
+                enableRangeProcessing: true,
+                contentType: MimeTypes.GetMimeType(entryPath.Filename));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using PathLib;
+﻿using Microsoft.Net.Http.Headers;
+using PathLib;
+using System.Net.Mime;
 
 namespace GalleryBackend
 {
@@ -70,10 +72,16 @@ namespace GalleryBackend
             return Configurations.BaseDirectoryPath.Join(path).FileInfo.OpenRead();
         }
 
-        public static IResult SendFile(PosixPath path)
+        public static IResult SendFile(HttpContext http, PosixPath path)
         {
+            var disposition = new ContentDispositionHeaderValue(dispositionType: "inline");
+            disposition.SetHttpFileName(path.Filename);
+
+            http.Response.Headers.ContentDisposition = disposition.ToString();
+
             return Results.File(
                 Configurations.BaseDirectoryPath.Join(path).ToString(),
+                contentType: MimeTypes.GetMimeType(path.Filename),
                 enableRangeProcessing: true);
         }
     }
