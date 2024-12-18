@@ -3,10 +3,6 @@ using PathLib;
 
 namespace GalleryBackend
 {
-    public enum ThumbnailType
-    {
-        Grid, List
-    }
     public static class ImageHandlers
     {
         private static Stream GetStream(PosixPath path)
@@ -23,26 +19,36 @@ namespace GalleryBackend
                 return PhysicalFS.ReadFile(physicalPath);
             }
         }
-        public static IResult CreateThumbnail(string path, ThumbnailType type = ThumbnailType.Grid)
+
+        public static IResult CreateListThumbnail(
+            string path, 
+            int width, 
+            int height = Configurations.ListThumbnailHeight)
         {
             using var stream = GetStream(new PosixPath(path));
             using var image = Image.NewFromStream(stream);
 
             var scale = image.Width > image.Height ?
-                (double)Configurations.ListThumbnailWidth / (double)image.Width :
-                (double)Configurations.ListThumbnailHeight / (double)image.Height;
+                (double)width / (double)image.Width :
+                (double)height / (double)image.Height;
 
-            using var thumb = type switch
-            {
-                ThumbnailType.Grid => image.ThumbnailImage(
+            using var thumb = image.Resize(scale);
+
+            var output = thumb.JpegsaveBuffer();
+
+            return Results.Bytes(output, "image/jpeg");
+        }
+
+        public static IResult CreateGridThumbnail(string path)
+        {
+            using var stream = GetStream(new PosixPath(path));
+            using var image = Image.NewFromStream(stream);
+
+            using var thumb = image.ThumbnailImage(
                     width: Configurations.GridThumbnailWidth,
                     height: Configurations.GridThumbnailHeight,
                     crop: Enums.Interesting.Entropy
-                ),
-
-                ThumbnailType.List => image.Resize(scale),
-                _ => throw new NotImplementedException(),
-            };
+            );
 
             var output = thumb.JpegsaveBuffer();
 

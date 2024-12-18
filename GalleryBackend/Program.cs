@@ -31,10 +31,18 @@ app.MapGet("/list", (string path = "") =>
     }
 }).WithName("List");
 
-app.MapGet("/get/thumbnail/{*path}", ImageHandlers.CreateThumbnail).WithName("Thumbnail");
-app.MapGet("/get/list_thumbnail/{*path}", (string path) => ImageHandlers.CreateThumbnail(path, ThumbnailType.List)).WithName("Thumbnail for list");
-app.MapGet("/get/grid_thumbnail/{*path}", (string path) => ImageHandlers.CreateThumbnail(path, ThumbnailType.Grid)).WithName("Thumbnail for grid");
-app.MapGet("/get/image/{*path}", ImageHandlers.CreateViewImage).WithName("View Image");
+app.MapGet("/get/list_thumbnail/{*path}", (string path,
+    int width = Configurations.ListThumbnailWidth,
+    int height = Configurations.ListThumbnailHeight
+) => ImageHandlers.CreateListThumbnail(path, width, height)).WithName("Thumbnail for list");
+
+app.MapGet("/get/grid_thumbnail/{*path}",
+    (string path) => ImageHandlers.CreateGridThumbnail(path)
+).WithName("Thumbnail for grid");
+
+app.MapGet("/get/image/{*path}", 
+    ImageHandlers.CreateViewImage
+).WithName("View Image");
 
 app.MapGet("/get/file/{*path}", (HttpContext http, string path) =>
 {
