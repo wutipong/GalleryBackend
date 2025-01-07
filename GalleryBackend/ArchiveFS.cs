@@ -44,7 +44,8 @@ namespace GalleryBackend
 
                         if (mimetype.StartsWith("image/") ||
                             mimetype.StartsWith("video/") ||
-                            mimetype.StartsWith("audio/"))
+                            mimetype.StartsWith("audio/") ||
+                            mimetype == "application/pdf")
                         {
                             files.AddLast(new ListObject(
                                 Name: physicalPath.Join(entryPath).ToString(),
