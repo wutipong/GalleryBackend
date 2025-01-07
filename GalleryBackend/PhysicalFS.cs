@@ -34,21 +34,15 @@ namespace GalleryBackend
                                 DateTime: p.FileInfo.LastWriteTime
                          ));
                     }
-                    else
+                    else if (PathUtility.IsViewableFile(p))
                     {
-                        var mimetype = MimeTypes.GetMimeType(p.Filename);
-                        if (mimetype.StartsWith("image/") ||
-                            mimetype.StartsWith("video/") ||
-                            mimetype.StartsWith("audio/") ||
-                            mimetype == "application/pdf")
-                        {
-                            files.AddLast(
-                                new ListObject(
-                                    Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
-                                    DateTime: p.FileInfo.LastWriteTime
-                            ));
-                        }
+                        files.AddLast(
+                            new ListObject(
+                                Name: p.RelativeTo(Configurations.BaseDirectoryPath).ToString(),
+                                DateTime: p.FileInfo.LastWriteTime
+                        ));
                     }
+
                 }
             }
 
