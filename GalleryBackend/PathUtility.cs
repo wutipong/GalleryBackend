@@ -44,5 +44,19 @@ namespace GalleryBackend
                 path.Extension == ".7z";
         }
 
+        public static bool IsViewableFile(PosixPath path)
+        {
+            var mimetype = MimeTypes.GetMimeType(path.Filename);
+
+            if (mimetype.StartsWith("image/") ||
+                mimetype.StartsWith("video/") ||
+                mimetype.StartsWith("audio/") ||
+                mimetype == "application/pdf")
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
