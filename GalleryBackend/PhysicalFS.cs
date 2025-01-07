@@ -39,7 +39,8 @@ namespace GalleryBackend
                         var mimetype = MimeTypes.GetMimeType(p.Filename);
                         if (mimetype.StartsWith("image/") ||
                             mimetype.StartsWith("video/") ||
-                            mimetype.StartsWith("audio/"))
+                            mimetype.StartsWith("audio/") ||
+                            mimetype == "application/pdf")
                         {
                             files.AddLast(
                                 new ListObject(
