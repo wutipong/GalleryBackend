@@ -51,7 +51,8 @@ namespace GalleryBackend
             if (mimetype.StartsWith("image/") ||
                 mimetype.StartsWith("video/") ||
                 mimetype.StartsWith("audio/") ||
-                mimetype == "application/pdf")
+                mimetype == "application/pdf" ||
+                mimetype == "application/epub+zip")
             {
                 return true;
             }
